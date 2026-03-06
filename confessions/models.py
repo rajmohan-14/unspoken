@@ -64,3 +64,20 @@ class SessionKarma(models.Model):
 
     def __str__(self):
         return f"Session karma: {self.karma_points} pts"
+class ModerationQueue(models.Model):
+
+    STATUS_CHOICES = [
+        ('pending',  'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    post        = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='moderation_entries', null=True, blank=True)
+    reply       = models.ForeignKey(Reply, on_delete=models.CASCADE, related_name='moderation_entries', null=True, blank=True)
+    reason      = models.TextField()
+    status      = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at  = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"ModerationQueue [{self.status}] - {self.reason[:40]}"
