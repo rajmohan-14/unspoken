@@ -6,7 +6,17 @@
   <h1 class="text-2xl font-serif mb-1">Share anonymously</h1>
   <p class="text-zinc-500 text-sm">No account. No name. Just words.</p>
 </div>
-
+{% if crisis %}
+<div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-5">
+  <p class="text-red-400 font-medium text-sm mb-2">💙 You don't have to face this alone</p>
+  <p class="text-zinc-400 text-sm">If you're going through something serious, please reach out:</p>
+  <div class="mt-2 flex flex-wrap gap-3">
+    <span class="text-zinc-200 text-sm font-medium">iCall: 9152987821</span>
+    <span class="text-zinc-200 text-sm font-medium">Vandrevala: 1860-2662-345</span>
+  </div>
+  <p class="text-zinc-600 text-xs mt-2">You can still post — your feelings are valid.</p>
+</div>
+{% endif %}
 {% if errors %}
 <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-5">
   {% for error in errors %}

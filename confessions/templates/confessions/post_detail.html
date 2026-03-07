@@ -15,14 +15,21 @@
 </div>
 
 <!-- Replies -->
-<h2 class="text-sm font-medium text-zinc-400 mb-3">{{ replies.count }} {{ replies.count|pluralize:"reply,replies" }}</h2>
+<h2 class="text-sm font-medium text-zinc-400 mb-3">
+  {{ replies.count }} {{ replies.count|pluralize:"reply,replies" }}
+</h2>
 
 {% for reply in replies %}
-<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-3">
+<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-3" id="reply-{{ reply.id }}">
   <p class="text-zinc-300 text-sm leading-relaxed mb-3">{{ reply.content }}</p>
   <div class="flex items-center justify-between">
     <span class="text-xs text-zinc-600">{{ reply.created_at|timesince }} ago</span>
-    <span class="text-xs text-zinc-500">{{ reply.helpful_votes }} found this helpful</span>
+    <button
+      onclick="voteHelpful({{ reply.id }}, this)"
+      class="text-xs border border-zinc-700 hover:border-green-500 hover:text-green-400 text-zinc-500 px-3 py-1 rounded-lg transition"
+    >
+      ✦ Helpful (<span id="votes-{{ reply.id }}">{{ reply.helpful_votes }}</span>)
+    </button>
   </div>
 </div>
 {% empty %}
@@ -48,5 +55,42 @@
     </div>
   </form>
 </div>
+
+<!-- Vote script -->
+<script>
+const csrfToken = document.cookie
+  .split('; ')
+  .find(row => row.startsWith('csrftoken='))
+  ?.split('=')[1];
+
+function voteHelpful(replyId, btn) {
+  btn.disabled = true;
+
+  fetch(`/vote/${replyId}/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': csrfToken,
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.helpful_votes !== undefined) {
+      document.getElementById(`votes-${replyId}`).textContent = data.helpful_votes;
+      btn.classList.remove('border-zinc-700', 'text-zinc-500');
+      btn.classList.add('border-green-500', 'text-green-400');
+      btn.textContent = `✦ Helpful (${data.helpful_votes})`;
+    } else {
+      btn.textContent = data.error || 'Cannot vote';
+      btn.classList.add('text-red-400', 'border-red-400');
+      btn.disabled = false;
+    }
+  })
+  .catch(() => {
+    btn.textContent = 'Something went wrong';
+    btn.disabled = false;
+  });
+}
+</script>
 
 {% endblock %}
