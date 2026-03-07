@@ -6,6 +6,25 @@
   <h1 class="text-2xl font-serif mb-1">What's on people's minds</h1>
   <p class="text-zinc-500 text-sm">Every post expires in 30 days. No names, ever.</p>
 </div>
+{% if highlights %}
+<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-6">
+  <h2 class="text-sm font-medium text-zinc-400 mb-4">✦ This week's top helpers</h2>
+  <div class="flex flex-col gap-3">
+    {% for helper in highlights %}
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-zinc-600 text-xs w-4">#{{ helper.rank }}</span>
+        <span class="text-zinc-300 text-sm">Anonymous helper</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-xs text-zinc-500">helped {{ helper.people_helped }} people</span>
+        <span class="text-xs text-yellow-400 font-medium">{{ helper.kindness_points }} kindness</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 <!-- Filters -->
 <form method="GET" class="flex gap-2 mb-6 flex-wrap">

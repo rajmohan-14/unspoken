@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 load_dotenv()
 
@@ -111,7 +112,25 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
+
 
 STATIC_URL = 'static/'
+CELERY_BEAT_SCHEDULE = {
+
+    'delete-expired-posts': {
+        'task':     'confessions.tasks.delete_expired_posts',
+        'schedule': crontab(hour=0, minute=0),
+    },
+
+    
+    'highlight-weekly-kindness': {
+        'task':     'confessions.tasks.highlight_weekly_kindness',
+        'schedule': crontab(hour=9, minute=0, day_of_week=1),
+    },
+
+  
+    'update-kindness-weeks': {
+        'task':     'confessions.tasks.update_kindness_week_numbers',
+        'schedule': crontab(hour=8, minute=55, day_of_week=1),
+    },
+}
