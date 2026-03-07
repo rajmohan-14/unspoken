@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.http import JsonResponse
-from .models import Post, Reply, SessionKarma, ModerationQueue
+from .models import Post, Reply, SessionKindness, ModerationQueue
 from .filters import should_auto_approve, check_flagged, check_crisis
 
 
@@ -114,8 +114,8 @@ def vote_helpful(request, reply_id):
     """
     Called when someone clicks 'This helped me' on a reply.
     - Increments helpful_votes on the Reply
-    - Gives +1 karma to the reply author's session
-    - Updates posts_helped count
+    - Gives +1 kindness to the reply author's session
+    - Updates people_helped count
     """
     if request.method == 'POST':
         reply = get_object_or_404(Reply, id=reply_id)
@@ -128,16 +128,16 @@ def vote_helpful(request, reply_id):
         reply.helpful_votes += 1
         reply.save()
 
-        karma, created = SessionKarma.objects.get_or_create(
+        kindness, created = SessionKindness.objects.get_or_create(
             session_token=reply.session_token,
-            defaults={'karma_points': 0, 'posts_helped': 0}
+            defaults={'kindness_points': 0, 'people_helped': 0}
         )
-        karma.karma_points += 1
-        karma.posts_helped += 1
-        karma.save()
+        kindness.kindness_points += 1
+        kindness.people_helped += 1
+        kindness.save()
 
     
-        reply.post.karma_received += 1
+        reply.post.kindness_received += 1
         reply.post.save()
 
         return JsonResponse({

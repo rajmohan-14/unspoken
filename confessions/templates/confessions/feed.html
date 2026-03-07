@@ -39,7 +39,7 @@
     <a href="{% url 'post_detail' post.id %}" class="text-xs text-zinc-500 hover:text-zinc-300 transition">
       💬 {{ post.replies.count }} replies
     </a>
-    <span class="text-xs text-zinc-600 ml-auto">{{ post.karma_received }} karma received</span>
+    <span class="text-xs text-zinc-600 ml-auto">{{ post.kindness_received }} kindness received</span>
   </div>
 </div>
 {% empty %}

@@ -33,7 +33,7 @@ class Post(models.Model):
     is_approved    = models.BooleanField(default=False)
     created_at     = models.DateTimeField(auto_now_add=True)
     expires_at     = models.DateTimeField(default=default_expiry)
-    karma_received = models.IntegerField(default=0)
+    kindness_received = models.IntegerField(default=0)
 
     def __str__(self):
         return f"[{self.mood_tag}] {self.content[:60]}"
@@ -55,15 +55,15 @@ class Reply(models.Model):
         return f"Reply to Post #{self.post_id}: {self.content[:40]}"
 
 
-class SessionKarma(models.Model):
+class SessionKindness(models.Model):
 
     session_token = models.CharField(max_length=64, unique=True)
-    karma_points  = models.IntegerField(default=0)
-    posts_helped  = models.IntegerField(default=0)
+    kindness_points  = models.IntegerField(default=0)
+    people_helped  = models.IntegerField(default=0)
     week_number   = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"Session karma: {self.karma_points} pts"
+        return f"Session kindness: {self.kindness_points} pts"
 class ModerationQueue(models.Model):
 
     STATUS_CHOICES = [

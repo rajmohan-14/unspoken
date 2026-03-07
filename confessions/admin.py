@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import Post, Reply, SessionKarma
-from .models import Post, Reply, SessionKarma, ModerationQueue
+from .models import Post, Reply, SessionKindness
+from .models import Post, Reply, SessionKindness, ModerationQueue
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
@@ -16,9 +16,9 @@ class ReplyAdmin(admin.ModelAdmin):
     list_filter   = ('is_flagged',)
 
 
-@admin.register(SessionKarma)
-class SessionKarmaAdmin(admin.ModelAdmin):
-    list_display = ('session_token', 'karma_points', 'posts_helped', 'week_number')
+@admin.register(SessionKindness)
+class SessionKindnessAdmin(admin.ModelAdmin):
+    list_display = ('session_token', 'kindness_points', 'people_helped', 'week_number')
 @admin.register(ModerationQueue)
 class ModerationQueueAdmin(admin.ModelAdmin):
     list_display  = ('status', 'reason', 'created_at', 'reviewed_at')
