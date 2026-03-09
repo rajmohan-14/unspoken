@@ -6,10 +6,11 @@
   <h1 class="text-2xl font-serif mb-1">Share anonymously</h1>
   <p class="text-zinc-500 text-sm">No account. No name. Just words.</p>
 </div>
+
 {% if crisis %}
 <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-5">
   <p class="text-red-400 font-medium text-sm mb-2">💙 You don't have to face this alone</p>
-  <p class="text-zinc-400 text-sm">If you're going through something serious, please reach out:</p>
+  <p class="text-zinc-400 text-sm">If you're going through something serious please reach out:</p>
   <div class="mt-2 flex flex-wrap gap-3">
     <span class="text-zinc-200 text-sm font-medium">iCall: 9152987821</span>
     <span class="text-zinc-200 text-sm font-medium">Vandrevala: 1860-2662-345</span>
@@ -17,6 +18,8 @@
   <p class="text-zinc-600 text-xs mt-2">You can still post — your feelings are valid.</p>
 </div>
 {% endif %}
+
+
 {% if errors %}
 <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-5">
   {% for error in errors %}
@@ -25,25 +28,54 @@
 </div>
 {% endif %}
 
-<form method="POST" class="flex flex-col gap-4">
+<form method="POST" class="flex flex-col gap-4" id="submitForm">
   {% csrf_token %}
 
-  <textarea
-    name="content"
-    maxlength="500"
-    rows="5"
-    placeholder="What's weighing on you? You're safe here..."
-    class="bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-sm text-zinc-100 placeholder-zinc-600 resize-none focus:outline-none focus:border-purple-500 transition"
-  ></textarea>
 
+  <div class="relative">
+    <textarea
+      id="postContent"
+      name="content"
+      maxlength="500"
+      rows="5"
+      placeholder="What's weighing on you? You're safe here..."
+      class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-sm text-zinc-100 placeholder-zinc-600 resize-none focus:outline-none focus:border-purple-500 transition pr-16"
+      oninput="updateCounter(this)"
+    ></textarea>
+
+    <div
+      id="charCounter"
+      class="absolute bottom-3 right-3 text-xs font-medium px-2 py-1 rounded-lg bg-zinc-800 text-zinc-500 transition-all"
+    >
+      0/500
+    </div>
+  </div>
+
+
+  <div class="h-1 bg-zinc-800 rounded-full overflow-hidden -mt-2">
+    <div
+      id="charProgress"
+      class="h-full rounded-full transition-all duration-150"
+      style="width: 0%; background: #71717a;"
+    ></div>
+  </div>
+
+  
   <div class="flex gap-3">
-    <select name="mood_tag" class="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100">
+    <select
+      name="mood_tag"
+      class="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-purple-500 transition"
+    >
       <option value="">Select mood</option>
       {% for value, label in moods %}
         <option value="{{ value }}">{{ label }}</option>
       {% endfor %}
     </select>
-    <select name="category" class="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100">
+
+    <select
+      name="category"
+      class="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-purple-500 transition"
+    >
       <option value="">Select category</option>
       {% for value, label in categories %}
         <option value="{{ value }}">{{ label }}</option>
@@ -51,12 +83,51 @@
     </select>
   </div>
 
+ 
   <div class="flex justify-between items-center">
     <span class="text-xs text-zinc-600">🔒 Your identity is never stored</span>
-    <button type="submit" class="bg-purple-500 hover:bg-purple-400 text-black font-medium px-5 py-2 rounded-lg text-sm transition">
+    <button
+      type="submit"
+      id="submitBtn"
+      class="bg-purple-500 hover:bg-purple-400 disabled:bg-zinc-700 disabled:text-zinc-500 disabled:cursor-not-allowed text-black font-medium px-5 py-2 rounded-lg text-sm transition"
+    >
       Post anonymously →
     </button>
   </div>
 </form>
+
+<script>
+function updateCounter(textarea) {
+  const current  = textarea.value.length;
+  const max      = 500;
+  const pct      = (current / max) * 100;
+  const counter  = document.getElementById('charCounter');
+  const progress = document.getElementById('charProgress');
+  const btn      = document.getElementById('submitBtn');
+
+  counter.textContent = `${current}/${max}`;
+
+ 
+  progress.style.width = `${pct}%`;
+
+  if (current >= 480) {
+    
+    counter.classList.remove('text-zinc-500', 'text-yellow-400');
+    counter.classList.add('text-red-400');
+    progress.style.background = '#f87171';
+  } else if (current >= 400) {
+    
+    counter.classList.remove('text-zinc-500', 'text-red-400');
+    counter.classList.add('text-yellow-400');
+    progress.style.background = '#fbbf24';
+  } else {
+    counter.classList.remove('text-yellow-400', 'text-red-400');
+    counter.classList.add('text-zinc-500');
+    progress.style.background = '#71717a';
+  }
+
+  btn.disabled = current >= max;
+}
+</script>
 
 {% endblock %}
