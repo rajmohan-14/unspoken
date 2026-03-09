@@ -26,13 +26,13 @@ class Post(models.Model):
         ('other',         'Other'),
     ]
 
-    session_token  = models.CharField(max_length=64)
-    content        = models.TextField(max_length=500)
-    mood_tag       = models.CharField(max_length=20, choices=MOOD_CHOICES)
-    category       = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
-    is_approved    = models.BooleanField(default=False)
-    created_at     = models.DateTimeField(auto_now_add=True)
-    expires_at     = models.DateTimeField(default=default_expiry)
+    session_token     = models.CharField(max_length=64)
+    content           = models.TextField(max_length=500)
+    mood_tag          = models.CharField(max_length=20, choices=MOOD_CHOICES)
+    category          = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    is_approved       = models.BooleanField(default=False)
+    created_at        = models.DateTimeField(auto_now_add=True)
+    expires_at        = models.DateTimeField(default=default_expiry)
     kindness_received = models.IntegerField(default=0)
 
     def __str__(self):
@@ -40,6 +40,31 @@ class Post(models.Model):
 
     def is_expired(self):
         return timezone.now() > self.expires_at
+
+    def days_remaining(self):
+        """Returns how many days until this post expires."""
+        delta = self.expires_at - timezone.now()
+        return max(0, delta.days)
+
+    def expiry_percentage(self):
+        """
+        Returns what percentage of life is remaining.
+        100% = just posted
+        0%   = expired
+        """
+        total_days = 30
+        remaining  = self.days_remaining()
+        return int((remaining / total_days) * 100)
+
+    def expiry_color(self):
+        """Returns a Tailwind color class based on time remaining."""
+        pct = self.expiry_percentage()
+        if pct > 50:
+            return 'bg-green-500'
+        elif pct > 25:
+            return 'bg-yellow-500'
+        else:
+            return 'bg-red-500'
 
 
 class Reply(models.Model):
@@ -57,13 +82,15 @@ class Reply(models.Model):
 
 class SessionKindness(models.Model):
 
-    session_token = models.CharField(max_length=64, unique=True)
-    kindness_points  = models.IntegerField(default=0)
-    people_helped  = models.IntegerField(default=0)
-    week_number   = models.IntegerField(default=0)
+    session_token   = models.CharField(max_length=64, unique=True)
+    kindness_points = models.IntegerField(default=0)
+    people_helped   = models.IntegerField(default=0)
+    week_number     = models.IntegerField(default=0)
 
     def __str__(self):
         return f"Session kindness: {self.kindness_points} pts"
+
+
 class ModerationQueue(models.Model):
 
     STATUS_CHOICES = [

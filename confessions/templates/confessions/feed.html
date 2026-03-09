@@ -45,26 +45,61 @@
   </button>
 </form>
 
-<!-- Posts -->
+
 {% for post in posts %}
-<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-4 hover:border-zinc-600 transition">
+<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-4 hover:border-zinc-600 transition cursor-pointer"
+     onclick="window.location='{% url 'post_detail' post.id %}'">
+
+ 
   <div class="flex items-center gap-2 mb-3">
-    <span class="text-xs px-2 py-1 rounded-full bg-purple-500/10 text-purple-400">{{ post.get_mood_tag_display }}</span>
-    <span class="text-xs px-2 py-1 rounded-full bg-zinc-800 text-zinc-400">{{ post.get_category_display }}</span>
+    <span class="text-xs px-2 py-1 rounded-full bg-purple-500/10 text-purple-400">
+      {{ post.get_mood_tag_display }}
+    </span>
+    <span class="text-xs px-2 py-1 rounded-full bg-zinc-800 text-zinc-400">
+      {{ post.get_category_display }}
+    </span>
     <span class="text-xs text-zinc-600 ml-auto">{{ post.created_at|timesince }} ago</span>
   </div>
+
+ 
   <p class="text-zinc-300 text-sm leading-relaxed mb-4">{{ post.content }}</p>
-  <div class="flex items-center gap-4 pt-3 border-t border-zinc-800">
-    <a href="{% url 'post_detail' post.id %}" class="text-xs text-zinc-500 hover:text-zinc-300 transition">
-      💬 {{ post.replies.count }} replies
-    </a>
-    <span class="text-xs text-zinc-600 ml-auto">{{ post.kindness_received }} kindness received</span>
+
+
+  <div class="mb-4">
+    <div class="flex justify-between text-xs text-zinc-600 mb-1">
+      <span>Expires in {{ post.days_remaining }} day{{ post.days_remaining|pluralize }}</span>
+      <span>{{ post.expiry_percentage }}% remaining</span>
+    </div>
+    <div class="h-1 bg-zinc-800 rounded-full overflow-hidden">
+      <div
+        class="h-full rounded-full transition-all {{ post.expiry_color }}"
+        style="width: {{ post.expiry_percentage }}%"
+      ></div>
+    </div>
   </div>
+
+  <
+  <div class="flex items-center gap-4 pt-3 border-t border-zinc-800">
+    <span class="text-xs text-zinc-500">
+      💬 {{ post.replies.count }} {{ post.replies.count|pluralize:"reply,replies" }}
+    </span>
+    <span class="text-xs text-zinc-500">
+      ✦ {{ post.kindness_received }} kindness
+    </span>
+    <span class="text-xs text-zinc-600 ml-auto">
+      {% if post.days_remaining <= 3 %}
+        ⚠️ Expiring soon
+      {% endif %}
+    </span>
+  </div>
+
 </div>
 {% empty %}
 <div class="text-center text-zinc-600 py-16">
   <p class="text-lg mb-2">Nothing here yet.</p>
-  <a href="{% url 'submit_post' %}" class="text-purple-400 hover:text-purple-300">Be the first to share something →</a>
+  <a href="{% url 'submit_post' %}" class="text-purple-400 hover:text-purple-300">
+    Be the first to share something →
+  </a>
 </div>
 {% endfor %}
 

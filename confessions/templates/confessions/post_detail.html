@@ -4,21 +4,50 @@
 
 <a href="{% url 'feed' %}" class="text-zinc-500 hover:text-zinc-300 text-sm mb-6 inline-block transition">← Back to feed</a>
 
-<!-- The post -->
+<!-- The post card -->
 <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-6">
+
+  <!-- Post header -->
   <div class="flex items-center gap-2 mb-3">
-    <span class="text-xs px-2 py-1 rounded-full bg-purple-500/10 text-purple-400">{{ post.get_mood_tag_display }}</span>
-    <span class="text-xs px-2 py-1 rounded-full bg-zinc-800 text-zinc-400">{{ post.get_category_display }}</span>
+    <span class="text-xs px-2 py-1 rounded-full bg-purple-500/10 text-purple-400">
+      {{ post.get_mood_tag_display }}
+    </span>
+    <span class="text-xs px-2 py-1 rounded-full bg-zinc-800 text-zinc-400">
+      {{ post.get_category_display }}
+    </span>
     <span class="text-xs text-zinc-600 ml-auto">{{ post.created_at|timesince }} ago</span>
   </div>
-  <p class="text-zinc-200 leading-relaxed">{{ post.content }}</p>
+
+  <!-- Post content -->
+  <p class="text-zinc-200 leading-relaxed mb-4">{{ post.content }}</p>
+
+  <!-- Expiry bar -->
+  <div class="pt-4 border-t border-zinc-800">
+    <div class="flex justify-between text-xs text-zinc-600 mb-1">
+      <span>Expires in {{ post.days_remaining }} day{{ post.days_remaining|pluralize }}</span>
+      <span>{{ post.expiry_percentage }}% remaining</span>
+    </div>
+    <div class="h-1 bg-zinc-800 rounded-full overflow-hidden">
+      <div
+        class="h-full rounded-full {{ post.expiry_color }}"
+        style="width: {{ post.expiry_percentage }}%"
+      ></div>
+    </div>
+    {% if post.days_remaining <= 3 %}
+    <p class="text-xs text-yellow-500 mt-2">
+      ⚠️ This post expires in {{ post.days_remaining }} day{{ post.days_remaining|pluralize }}
+    </p>
+    {% endif %}
+  </div>
+
 </div>
 
-<!-- Replies -->
+<!-- Replies header -->
 <h2 class="text-sm font-medium text-zinc-400 mb-3">
   {{ replies.count }} {{ replies.count|pluralize:"reply,replies" }}
 </h2>
 
+<!-- Replies list -->
 {% for reply in replies %}
 <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-3" id="reply-{{ reply.id }}">
   <p class="text-zinc-300 text-sm leading-relaxed mb-3">{{ reply.content }}</p>
