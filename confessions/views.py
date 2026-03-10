@@ -78,7 +78,7 @@ def submit_post(request):
             errors.append('Please select a category.')
 
         if not errors:
-            # Decide if post needs moderation or can go live
+          
             auto_approve = should_auto_approve(content)
             is_flagged   = check_flagged(content)
 

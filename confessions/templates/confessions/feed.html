@@ -2,105 +2,163 @@
 
 {% block content %}
 
+
 <div class="mb-6">
   <h1 class="text-2xl font-serif mb-1">What's on people's minds</h1>
   <p class="text-zinc-500 text-sm">Every post expires in 30 days. No names, ever.</p>
 </div>
-{% if highlights %}
-<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-6">
-  <h2 class="text-sm font-medium text-zinc-400 mb-4">✦ This week's top helpers</h2>
-  <div class="flex flex-col gap-3">
-    {% for helper in highlights %}
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <span class="text-zinc-600 text-xs w-4">#{{ helper.rank }}</span>
-        <span class="text-zinc-300 text-sm">Anonymous helper</span>
-      </div>
-      <div class="flex items-center gap-4">
-        <span class="text-xs text-zinc-500">helped {{ helper.people_helped }} people</span>
-        <span class="text-xs text-yellow-400 font-medium">{{ helper.kindness_points }} kindness</span>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
 
-<!-- Filters -->
-<form method="GET" class="flex gap-2 mb-6 flex-wrap">
-  <select name="mood" class="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100">
-    <option value="">All moods</option>
-    {% for value, label in moods %}
-      <option value="{{ value }}" {% if mood == value %}selected{% endif %}>{{ label }}</option>
-    {% endfor %}
-  </select>
-  <select name="category" class="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100">
-    <option value="">All categories</option>
-    {% for value, label in categories %}
-      <option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>
-    {% endfor %}
-  </select>
-  <button type="submit" class="bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-sm hover:border-zinc-500 transition">
-    Filter
-  </button>
-</form>
+<div class="flex gap-6">
 
+  <div class="flex-1 min-w-0">
 
-{% for post in posts %}
-<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-4 hover:border-zinc-600 transition cursor-pointer"
-     onclick="window.location='{% url 'post_detail' post.id %}'">
-
- 
-  <div class="flex items-center gap-2 mb-3">
-    <span class="text-xs px-2 py-1 rounded-full bg-purple-500/10 text-purple-400">
-      {{ post.get_mood_tag_display }}
-    </span>
-    <span class="text-xs px-2 py-1 rounded-full bg-zinc-800 text-zinc-400">
-      {{ post.get_category_display }}
-    </span>
-    <span class="text-xs text-zinc-600 ml-auto">{{ post.created_at|timesince }} ago</span>
-  </div>
-
- 
-  <p class="text-zinc-300 text-sm leading-relaxed mb-4">{{ post.content }}</p>
-
-
-  <div class="mb-4">
-    <div class="flex justify-between text-xs text-zinc-600 mb-1">
-      <span>Expires in {{ post.days_remaining }} day{{ post.days_remaining|pluralize }}</span>
-      <span>{{ post.expiry_percentage }}% remaining</span>
-    </div>
-    <div class="h-1 bg-zinc-800 rounded-full overflow-hidden">
-      <div
-        class="h-full rounded-full transition-all {{ post.expiry_color }}"
-        style="width: {{ post.expiry_percentage }}%"
-      ></div>
-    </div>
-  </div>
-
-  <
-  <div class="flex items-center gap-4 pt-3 border-t border-zinc-800">
-    <span class="text-xs text-zinc-500">
-      💬 {{ post.replies.count }} {{ post.replies.count|pluralize:"reply,replies" }}
-    </span>
-    <span class="text-xs text-zinc-500">
-      ✦ {{ post.kindness_received }} kindness
-    </span>
-    <span class="text-xs text-zinc-600 ml-auto">
-      {% if post.days_remaining <= 3 %}
-        ⚠️ Expiring soon
+    
+    <form method="GET" class="flex gap-2 mb-5 flex-wrap">
+      <select name="mood" class="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-purple-500 transition">
+        <option value="">All moods</option>
+        {% for value, label in moods %}
+          <option value="{{ value }}" {% if mood == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select name="category" class="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-purple-500 transition">
+        <option value="">All categories</option>
+        {% for value, label in categories %}
+          <option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg px-4 py-2 text-sm transition">
+        Filter
+      </button>
+      {% if mood or category %}
+      <a href="{% url 'feed' %}" class="bg-zinc-800 border border-zinc-700 hover:border-red-500 hover:text-red-400 rounded-lg px-4 py-2 text-sm transition text-zinc-400">
+        Clear ✕
+      </a>
       {% endif %}
-    </span>
+    </form>
+
+    
+    {% for post in posts %}
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-4 hover:border-zinc-600 transition cursor-pointer"
+         onclick="window.location='{% url 'post_detail' post.id %}'">
+
+   
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-xs px-2 py-1 rounded-full bg-purple-500/10 text-purple-400">
+          {{ post.get_mood_tag_display }}
+        </span>
+        <span class="text-xs px-2 py-1 rounded-full bg-zinc-800 text-zinc-400">
+          {{ post.get_category_display }}
+        </span>
+        <span class="text-xs text-zinc-600 ml-auto">{{ post.created_at|timesince }} ago</span>
+      </div>
+
+      
+      <p class="text-zinc-300 text-sm leading-relaxed mb-4">{{ post.content }}</p>
+
+      <div class="mb-4">
+        <div class="flex justify-between text-xs text-zinc-600 mb-1">
+          <span>Expires in {{ post.days_remaining }} day{{ post.days_remaining|pluralize }}</span>
+          <span>{{ post.expiry_percentage }}% remaining</span>
+        </div>
+        <div class="h-1 bg-zinc-800 rounded-full overflow-hidden">
+          <div
+            class="h-full rounded-full transition-all {{ post.expiry_color }}"
+            style="width: {{ post.expiry_percentage }}%"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Post footer -->
+      <div class="flex items-center gap-4 pt-3 border-t border-zinc-800">
+        <span class="text-xs text-zinc-500">
+          💬 {{ post.replies.count }} {{ post.replies.count|pluralize:"reply,replies" }}
+        </span>
+        <span class="text-xs text-zinc-500">
+          ✦ {{ post.kindness_received }} kindness
+        </span>
+        {% if post.days_remaining <= 3 %}
+        <span class="text-xs text-yellow-500 ml-auto">⚠️ Expiring soon</span>
+        {% endif %}
+      </div>
+
+    </div>
+    {% empty %}
+    <div class="text-center text-zinc-600 py-16">
+      <p class="text-lg mb-2">Nothing here yet.</p>
+      <a href="{% url 'submit_post' %}" class="text-purple-400 hover:text-purple-300">
+        Be the first to share something →
+      </a>
+    </div>
+    {% endfor %}
+
+  </div>
+
+  <!-- Right sidebar -->
+  <div class="w-64 flex-shrink-0 hidden lg:block">
+
+    <!-- Top helpers widget -->
+    {% if highlights %}
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-4">
+      <h3 class="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-4">
+        ✦ This week's top helpers
+      </h3>
+      <div class="flex flex-col gap-3">
+        {% for helper in highlights %}
+        <div class="flex items-center gap-3">
+          <span class="text-zinc-600 text-xs w-4 flex-shrink-0">#{{ helper.rank }}</span>
+          <div class="flex-1 min-w-0">
+            <div class="text-zinc-300 text-xs font-medium">Anonymous helper</div>
+            <div class="text-zinc-600 text-xs">
+              helped {{ helper.people_helped }} people
+            </div>
+          </div>
+          <span class="text-yellow-400 text-xs font-medium flex-shrink-0">
+            +{{ helper.kindness_points }}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="text-zinc-700 text-xs mt-4 pt-3 border-t border-zinc-800">
+        Resets every Monday
+      </p>
+    </div>
+    {% endif %}
+
+    <!-- Board stats widget -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-4">
+      <h3 class="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-4">
+        📊 Board stats
+      </h3>
+      <div class="flex flex-col gap-3">
+        <div class="flex justify-between">
+          <span class="text-zinc-500 text-xs">Posts shared</span>
+          <span class="text-zinc-300 text-xs font-medium">{{ stats.total_posts }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-zinc-500 text-xs">Replies given</span>
+          <span class="text-zinc-300 text-xs font-medium">{{ stats.total_replies }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-zinc-500 text-xs">Kindness earned</span>
+          <span class="text-yellow-400 text-xs font-medium">✦ {{ stats.total_kindness }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy notice widget -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <h3 class="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3">
+        🔒 Your privacy
+      </h3>
+      <p class="text-zinc-600 text-xs leading-relaxed">
+        No account. No name. No IP logs.
+        Posts vanish in 30 days.
+        You are completely anonymous.
+      </p>
+    </div>
+
   </div>
 
 </div>
-{% empty %}
-<div class="text-center text-zinc-600 py-16">
-  <p class="text-lg mb-2">Nothing here yet.</p>
-  <a href="{% url 'submit_post' %}" class="text-purple-400 hover:text-purple-300">
-    Be the first to share something →
-  </a>
-</div>
-{% endfor %}
 
 {% endblock %}
