@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from .models import Post, Reply, SessionKindness, ModerationQueue
 from .filters import should_auto_approve, check_flagged, check_crisis
 from moderator.utils import check_and_nominate 
+from django.db import models
 
 def feed(request):
     import json
@@ -23,13 +24,26 @@ def feed(request):
     if category:
         posts = posts.filter(category=category)
 
- 
+
     highlights      = []
     highlights_path = os.path.join(settings.BASE_DIR, 'weekly_highlights.json')
     if os.path.exists(highlights_path):
-        with open(highlights_path, 'r') as f:
-            data       = json.load(f)
-            highlights = data.get('highlights', [])
+        try:
+            with open(highlights_path, 'r') as f:
+                data       = json.load(f)
+                highlights = data.get('highlights', [])
+        except (json.JSONDecodeError, KeyError):
+            highlights = []
+
+    # Board stats for widget
+    from .models import Reply, SessionKindness
+    stats = {
+        'total_posts':   Post.objects.filter(is_approved=True).count(),
+        'total_replies': Reply.objects.count(),
+        'total_kindness': SessionKindness.objects.aggregate(
+            total=models.Sum('kindness_points')
+        )['total'] or 0,
+    }
 
     context = {
         'posts':      posts,
@@ -38,6 +52,7 @@ def feed(request):
         'moods':      Post.MOOD_CHOICES,
         'categories': Post.CATEGORY_CHOICES,
         'highlights': highlights,
+        'stats':      stats,
     }
     return render(request, 'confessions/feed.html', context)
 
