@@ -1,10 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.http import JsonResponse
+from django.db import models
 from .models import Post, Reply, SessionKindness, ModerationQueue
 from .filters import should_auto_approve, check_flagged, check_crisis
-from moderator.utils import check_and_nominate 
-from django.db import models
+
 
 def feed(request):
     import json
@@ -24,7 +24,13 @@ def feed(request):
     if category:
         posts = posts.filter(category=category)
 
+    
+    if request.headers.get('HX-Request'):
+        return render(request, 'confessions/partials/posts.html', {
+            'posts': posts,
+        })
 
+  
     highlights      = []
     highlights_path = os.path.join(settings.BASE_DIR, 'weekly_highlights.json')
     if os.path.exists(highlights_path):
@@ -35,11 +41,10 @@ def feed(request):
         except (json.JSONDecodeError, KeyError):
             highlights = []
 
-    # Board stats for widget
-    from .models import Reply, SessionKindness
+    
     stats = {
-        'total_posts':   Post.objects.filter(is_approved=True).count(),
-        'total_replies': Reply.objects.count(),
+        'total_posts':    Post.objects.filter(is_approved=True).count(),
+        'total_replies':  Reply.objects.count(),
         'total_kindness': SessionKindness.objects.aggregate(
             total=models.Sum('kindness_points')
         )['total'] or 0,
@@ -56,16 +61,17 @@ def feed(request):
     }
     return render(request, 'confessions/feed.html', context)
 
+
 def submit_post(request):
-    crisis   = False
-    errors   = []
+    crisis = False
+    errors = []
 
     if request.method == 'POST':
         content  = request.POST.get('content', '').strip()
         mood_tag = request.POST.get('mood_tag', '')
         category = request.POST.get('category', '')
 
-        # Check for crisis keywords
+  
         crisis = check_crisis(content)
 
         if not content:
@@ -78,7 +84,6 @@ def submit_post(request):
             errors.append('Please select a category.')
 
         if not errors:
-          
             auto_approve = should_auto_approve(content)
             is_flagged   = check_flagged(content)
 
@@ -90,7 +95,7 @@ def submit_post(request):
                 is_approved   = auto_approve,
             )
 
-            # Send flagged posts to moderation queue
+            
             if is_flagged:
                 ModerationQueue.objects.create(
                     post   = post,
@@ -112,7 +117,7 @@ def submit_post(request):
 
 
 def post_pending(request):
-    
+    """Shown after a flagged post is submitted."""
     return render(request, 'confessions/post_pending.html')
 
 
@@ -128,7 +133,16 @@ def post_detail(request, post_id):
                 session_token = request.session_token,
                 content       = content,
             )
-            return redirect('post_detail', post_id=post.id)
+           
+            replies = post.replies.filter(is_flagged=False).order_by('created_at')
+
+      
+            if request.headers.get('HX-Request'):
+                return render(request, 'confessions/partials/replies.html', {
+                    'replies': replies,
+                })
+
+        return redirect('post_detail', post_id=post.id)
 
     context = {
         'post':    post,
@@ -150,36 +164,42 @@ def vote_helpful(request, reply_id):
         reply.helpful_votes += 1
         reply.save()
 
+        
         kindness, created = SessionKindness.objects.get_or_create(
             session_token=reply.session_token,
             defaults={'kindness_points': 0, 'people_helped': 0}
         )
         kindness.kindness_points += 1
-        kindness.people_helped += 1
+        kindness.people_helped   += 1
         kindness.save()
+
+        
         from moderator.utils import check_and_nominate
         check_and_nominate(reply.session_token)
-    
+
+       
         reply.post.kindness_received += 1
         reply.post.save()
 
         return JsonResponse({
             'helpful_votes': reply.helpful_votes,
-            'message': 'Vote recorded'
+            'message':       'Vote recorded',
         })
 
     return JsonResponse({'error': 'POST required'}, status=405)
 
 
 def report_post(request, post_id):
-    """User-reported content goes to moderation queue."""
+    
     if request.method == 'POST':
         post = get_object_or_404(Post, id=post_id)
-        
+
+        # Only create if not already in queue
         if not ModerationQueue.objects.filter(post=post, status='pending').exists():
             ModerationQueue.objects.create(
                 post   = post,
                 reason = 'User reported',
             )
         return JsonResponse({'message': 'Reported. Thank you.'})
+
     return JsonResponse({'error': 'POST required'}, status=405)
