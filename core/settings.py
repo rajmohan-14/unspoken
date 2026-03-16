@@ -6,7 +6,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from celery.schedules import crontab
-
+import dj_database_url
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -62,11 +62,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600,
+    )
 }
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -102,13 +103,13 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=0),
     },
 
-    # Runs every Monday at 9am
+    
     'highlight-weekly-kindness': {
         'task':     'confessions.tasks.highlight_weekly_kindness',
         'schedule': crontab(hour=9, minute=0, day_of_week=1),
     },
 
-    # Runs every Monday at 8:55am (before highlight task)
+ 
     'update-kindness-weeks': {
         'task':     'confessions.tasks.update_kindness_week_numbers',
         'schedule': crontab(hour=8, minute=55, day_of_week=1),

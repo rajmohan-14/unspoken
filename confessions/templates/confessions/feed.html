@@ -2,19 +2,19 @@
 
 {% block content %}
 
-
+<!-- Page header -->
 <div class="mb-6">
   <h1 class="text-2xl font-serif mb-1">What's on people's minds</h1>
   <p class="text-zinc-500 text-sm">Every post expires in 30 days. No names, ever.</p>
 </div>
 
-
+<!-- Two column layout — stacks on mobile -->
 <div class="flex flex-col lg:flex-row gap-6">
 
-
+  <!-- LEFT column — main feed -->
   <div class="flex-1 min-w-0">
 
- 
+    <!-- Filters with HTMX -->
     <form
       hx-get="{% url 'feed' %}"
       hx-target="#posts-container"
@@ -42,8 +42,8 @@
       {% endif %}
     </form>
 
-    
-    <div id="feed-skeleton" class="htmx-indicator flex flex-col gap-4 mb-4">
+    <!-- Skeleton loader — shows during HTMX requests -->
+    <div id="feed-skeleton" class="htmx-indicator flex-col gap-4 mb-4" style="display:none;">
       {% for i in "123" %}
       <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 animate-pulse">
         <div class="flex gap-2 mb-3">
@@ -60,7 +60,7 @@
       {% endfor %}
     </div>
 
- 
+
     <div id="posts-container">
       {% include "confessions/partials/posts.html" %}
     </div>
@@ -68,10 +68,10 @@
   </div>
 
 
-
+  <!-- RIGHT column — sidebar -->
   <div class="w-full lg:w-64 lg:flex-shrink-0">
 
- 
+    <!-- Top helpers widget -->
     {% if highlights %}
     <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-4">
       <h3 class="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-4">

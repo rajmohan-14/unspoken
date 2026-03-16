@@ -48,25 +48,12 @@
 </h2>
 
 <!-- Replies list -->
-{% for reply in replies %}
-<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-3" id="reply-{{ reply.id }}">
-  <p class="text-zinc-300 text-sm leading-relaxed mb-3">{{ reply.content }}</p>
-  <div class="flex items-center justify-between">
-    <span class="text-xs text-zinc-600">{{ reply.created_at|timesince }} ago</span>
-    <button
-      onclick="voteHelpful({{ reply.id }}, this)"
-      class="text-xs border border-zinc-700 hover:border-green-500 hover:text-green-400 text-zinc-500 px-3 py-1 rounded-lg transition"
-    >
-      ✦ Helpful (<span id="votes-{{ reply.id }}">{{ reply.helpful_votes }}</span>)
-    </button>
-  </div>
+<div id="replies-list">
+  {% include "confessions/partials/replies.html" %}
 </div>
-{% empty %}
-<p class="text-zinc-600 text-sm py-4">No replies yet. Be the first to offer support.</p>
-{% endfor %}
 
-<!-- Reply form -->
-<div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+<!-- Reply form with HTMX -->
+<div class="mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-5">
   <h3 class="text-sm font-medium text-zinc-300 mb-3">Reply with support</h3>
   <form
     hx-post="{% url 'post_detail' post.id %}"
@@ -84,22 +71,45 @@
       placeholder="Offer support anonymously..."
       class="bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-sm text-zinc-100 placeholder-zinc-600 resize-none focus:outline-none focus:border-purple-500 transition"
     ></textarea>
-    <div class="flex justify-end">
+    <div class="flex justify-end mt-2">
       <button
         type="submit"
-        class="bg-purple-500 hover:bg-purple-400 text-black font-medium px-4 py-2 rounded-lg text-sm transition"
+        class="bg-purple-500 hover:bg-purple-400 text-black font-medium px-4 py-2 rounded-lg text-sm transition flex items-center gap-2"
       >
+        <span class="htmx-indicator">
+          <svg class="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+          </svg>
+        </span>
         Send reply →
       </button>
     </div>
   </form>
 </div>
+
+<!-- Toast notification -->
+<div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs px-4 py-2 rounded-full opacity-0 transition-all duration-300 z-50">
+  ✦ Marked as helpful
+</div>
+
 <!-- Vote script -->
 <script>
 const csrfToken = document.cookie
   .split('; ')
   .find(row => row.startsWith('csrftoken='))
   ?.split('=')[1];
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateX(-50%) translateY(-8px)';
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+  }, 2000);
+}
 
 function voteHelpful(replyId, btn) {
   btn.disabled = true;
@@ -118,15 +128,18 @@ function voteHelpful(replyId, btn) {
       btn.classList.remove('border-zinc-700', 'text-zinc-500');
       btn.classList.add('border-green-500', 'text-green-400');
       btn.textContent = `✦ Helpful (${data.helpful_votes})`;
+      showToast('✦ Marked as helpful');
     } else {
       btn.textContent = data.error || 'Cannot vote';
       btn.classList.add('text-red-400', 'border-red-400');
       btn.disabled = false;
+      showToast(data.error || 'Cannot vote');
     }
   })
   .catch(() => {
     btn.textContent = 'Something went wrong';
     btn.disabled = false;
+    showToast('Something went wrong');
   });
 }
 </script>
