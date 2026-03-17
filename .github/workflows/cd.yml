@@ -17,17 +17,44 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Deploy to Heroku
-        uses: akhileshns/heroku-deploy@v3.13.15
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-          heroku_email: ${{ secrets.HEROKU_EMAIL }}
-          usedocker: true
-
-      - name: Run migrations on Heroku
+      - name: Check Heroku configuration
+        id: check
+        run: |
+          if [[ -n "$HEROKU_API_KEY" && -n "$HEROKU_APP_NAME" && -n "$HEROKU_EMAIL" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Heroku secrets are not configured – skipping deployment."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: |
-          curl https://cli-assets.heroku.com/install.sh | sh
-          heroku run --app ${{ secrets.HEROKU_APP_NAME }} -- python manage.py migrate --noinput
+          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+          HEROKU_EMAIL: ${{ secrets.HEROKU_EMAIL }}
+
+      - name: Install Heroku CLI
+        if: steps.check.outputs.configured == 'true'
+        run: curl -fsSL https://cli-assets.heroku.com/install.sh | sh
+
+      - name: Login to Heroku Container Registry
+        if: steps.check.outputs.configured == 'true'
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:login
+
+      - name: Build and push Docker image to Heroku
+        if: steps.check.outputs.configured == 'true'
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:push web --app ${{ secrets.HEROKU_APP_NAME }}
+
+      - name: Release Docker image on Heroku
+        if: steps.check.outputs.configured == 'true'
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:release web --app ${{ secrets.HEROKU_APP_NAME }}
+
+      - name: Run migrations on Heroku
+        if: steps.check.outputs.configured == 'true'
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku run --app ${{ secrets.HEROKU_APP_NAME }} -- python manage.py migrate --noinput
