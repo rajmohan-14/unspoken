@@ -202,6 +202,6 @@ This repository includes two GitHub Actions workflows:
    | `HEROKU_APP_NAME` | The name of your Heroku app |
    | `HEROKU_EMAIL` | The email address of your Heroku account |
 
-3. Push to `main` — the CD workflow will build the Docker image and deploy it to Heroku automatically.
+3. Push to `main` — the CD workflow will build and deploy all process types (web, worker, beat) to Heroku automatically using `heroku.yml`.
 
 > **Tip:** If you don't want to use the CD workflow, simply omit the secrets above — the workflow will fail gracefully because the secrets will be empty.

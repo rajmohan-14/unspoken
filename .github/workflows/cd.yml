@@ -35,23 +35,13 @@ jobs:
         if: steps.check.outputs.configured == 'true'
         run: curl -fsSL https://cli-assets.heroku.com/install.sh | sh
 
-      - name: Login to Heroku Container Registry
+      - name: Deploy to Heroku via git push (uses heroku.yml)
         if: steps.check.outputs.configured == 'true'
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:login
-
-      - name: Build and push Docker images to Heroku
-        if: steps.check.outputs.configured == 'true'
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:push web worker beat --app ${{ secrets.HEROKU_APP_NAME }}
-
-      - name: Release Docker images on Heroku
-        if: steps.check.outputs.configured == 'true'
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:release web worker beat --app ${{ secrets.HEROKU_APP_NAME }}
+        run: |
+          heroku git:remote -a ${{ secrets.HEROKU_APP_NAME }}
+          git push heroku HEAD:refs/heads/main --force
 
       - name: Run migrations on Heroku
         if: steps.check.outputs.configured == 'true'
