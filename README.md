@@ -2,6 +2,41 @@
 
 An anonymous confession and kindness platform built with Django.
 
+## ✅ What to do next (quick-start)
+
+All the code and deployment config is ready. Here is the exact sequence of steps you need to follow to get the app running publicly:
+
+### Option A — Render (recommended, free tier available)
+
+- [ ] 1. **Merge this PR** into `main` on GitHub.
+- [ ] 2. Go to [render.com](https://render.com) and create a free account (or log in).
+- [ ] 3. Click **New → Blueprint** in the Render dashboard and connect your GitHub repository.
+- [ ] 4. Render reads `render.yaml` automatically and provisions everything (web app, Celery worker, Celery beat, PostgreSQL, Redis). Click **Apply**.
+- [ ] 5. Wait for the first deploy to finish (~5 minutes).
+- [ ] 6. Open a **Shell** for the `unspoken-web` service and run:
+       ```
+       python manage.py migrate
+       python manage.py createsuperuser
+       ```
+- [ ] 7. Your app is live at the URL shown in the Render dashboard (e.g. `https://unspoken-web.onrender.com`). The admin panel is at `/admin/`.
+
+---
+
+### Option B — Heroku (with automatic redeploy on git push)
+
+- [ ] 1. **Merge this PR** into `main`.
+- [ ] 2. [Create a Heroku account](https://signup.heroku.com) and install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
+- [ ] 3. Run the commands in the [Heroku section](#deployment-on-heroku--railway) below to create the app, add PostgreSQL & Redis, and set environment variables.
+- [ ] 4. In your GitHub repository go to **Settings → Secrets and variables → Actions** and add three secrets:
+       - `HEROKU_API_KEY` — from your Heroku **Account Settings**
+       - `HEROKU_APP_NAME` — the name you gave the app in step 3
+       - `HEROKU_EMAIL` — your Heroku login email
+- [ ] 5. Push `main` to GitHub — the CD workflow deploys automatically and runs migrations.
+- [ ] 6. Run `heroku run python manage.py createsuperuser --app your-app-name`.
+- [ ] 7. Your app is live at `https://your-app-name.herokuapp.com`. Admin panel at `/admin/`.
+
+---
+
 ## Features
 
 - Anonymous post submissions with content moderation
