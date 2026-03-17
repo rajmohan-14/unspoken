@@ -41,17 +41,17 @@ jobs:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: heroku container:login
 
-      - name: Build and push Docker image to Heroku
+      - name: Build and push Docker images to Heroku
         if: steps.check.outputs.configured == 'true'
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:push web --app ${{ secrets.HEROKU_APP_NAME }}
+        run: heroku container:push web worker beat --app ${{ secrets.HEROKU_APP_NAME }}
 
-      - name: Release Docker image on Heroku
+      - name: Release Docker images on Heroku
         if: steps.check.outputs.configured == 'true'
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: heroku container:release web --app ${{ secrets.HEROKU_APP_NAME }}
+        run: heroku container:release web worker beat --app ${{ secrets.HEROKU_APP_NAME }}
 
       - name: Run migrations on Heroku
         if: steps.check.outputs.configured == 'true'
