@@ -12,13 +12,21 @@ All the code and deployment config is ready. Here is the exact sequence of steps
 - [ ] 2. Go to [render.com](https://render.com) and create a free account (or log in).
 - [ ] 3. Click **New → Blueprint** in the Render dashboard and connect your GitHub repository.
 - [ ] 4. Render reads `render.yaml` automatically and provisions everything (web app, Celery worker, Celery beat, PostgreSQL, Redis). Click **Apply**.
-- [ ] 5. Wait for the first deploy to finish (~5 minutes).
+- [ ] 5. Wait for the first deploy to finish (~5 minutes). Migrations run automatically during the build step.
 - [ ] 6. Open a **Shell** for the `unspoken-web` service and run:
        ```
-       python manage.py migrate
        python manage.py createsuperuser
        ```
-- [ ] 7. Your app is live at the URL shown in the Render dashboard (e.g. `https://unspoken-web.onrender.com`). The admin panel is at `/admin/`.
+- [ ] 7. **Open your app** — click the URL shown at the top of the `unspoken-web` service page in the Render dashboard (it looks like `https://unspoken-web.onrender.com`). The admin panel is at `/admin/`.
+
+#### How to find your Render URL
+
+1. Go to [dashboard.render.com](https://dashboard.render.com).
+2. Click on the **unspoken-web** service.
+3. The public URL is shown at the top of the service page (e.g. `https://unspoken-web.onrender.com`).
+4. Click that link, or paste it into your browser, to open the app.
+
+> **Free-tier note:** Render free-tier web services spin down after 15 minutes of inactivity. The first request after a spin-down can take 30–60 seconds to load — this is normal.
 
 ---
 
@@ -134,14 +142,18 @@ The easiest way to deploy Unspoken is with [Render](https://render.com) using th
 1. Fork or push this repository to GitHub.
 2. In the [Render dashboard](https://dashboard.render.com/), click **New → Blueprint** and connect your repository.
 3. Render reads `render.yaml` and provisions all services automatically.
-4. After the first deploy completes, open a Render Shell for the `unspoken-web` service and run:
+4. Wait for the first deploy to finish. Database migrations run automatically as part of the build command.
+5. After the deploy completes, open a **Shell** for the `unspoken-web` service and run:
 
 ```bash
-python manage.py migrate
 python manage.py createsuperuser
 ```
 
+6. **Open your app:** In the Render dashboard, click on the **unspoken-web** service. Your public URL is displayed at the top of the page (e.g. `https://unspoken-web.onrender.com`). Open that URL in your browser.
+
 All environment variables (`SECRET_KEY`, `HMAC_SECRET`, `DATABASE_URL`, etc.) are generated or wired up automatically by the Blueprint.
+
+> **Why is my app slow to load?** Render free-tier services spin down after 15 minutes of inactivity. The first request after a spin-down may take up to 60 seconds. Subsequent requests are fast.
 
 ## Deployment on Heroku / Railway
 

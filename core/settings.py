@@ -17,6 +17,21 @@ HMAC_SECRET = os.getenv('HMAC_SECRET')
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+# Render automatically sets RENDER_EXTERNAL_HOSTNAME; include it so the
+# deployed service can receive requests without an extra env-var step.
+RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME.strip() and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# CSRF trusted origins - required for HTTPS POST requests (e.g. Render).
+# Build the list from ALLOWED_HOSTS that look like real hostnames.
+_csrf_trusted = [
+    f'https://{host}' for host in ALLOWED_HOSTS
+    if host not in ('localhost', '127.0.0.1', '')
+]
+if _csrf_trusted:
+    CSRF_TRUSTED_ORIGINS = _csrf_trusted
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',

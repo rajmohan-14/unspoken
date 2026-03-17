@@ -7,7 +7,7 @@ services:
   - type: web
     name: unspoken-web
     runtime: python
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
     startCommand: gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 2
     plan: free
     envVars:
