@@ -6,7 +6,7 @@ An anonymous confession and kindness platform built with Django.
 
 All the code and deployment config is ready. Here is the exact sequence of steps you need to follow to get the app running publicly:
 
-### Option A — Render (recommended, free tier available)
+### Deploy on Render (free tier available)
 
 - [ ] 1. **Merge this PR** into `main` on GitHub.
 - [ ] 2. Go to [render.com](https://render.com) and create a free account (or log in).
@@ -19,21 +19,6 @@ All the code and deployment config is ready. Here is the exact sequence of steps
        python manage.py createsuperuser
        ```
 - [ ] 7. Your app is live at the URL shown in the Render dashboard (e.g. `https://unspoken-web.onrender.com`). The admin panel is at `/admin/`.
-
----
-
-### Option B — Heroku (with automatic redeploy on git push)
-
-- [ ] 1. **Merge this PR** into `main`.
-- [ ] 2. [Create a Heroku account](https://signup.heroku.com) and install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
-- [ ] 3. Run the commands in the [Heroku section](#deployment-on-heroku--railway) below to create the app, add PostgreSQL & Redis, and set environment variables.
-- [ ] 4. In your GitHub repository go to **Settings → Secrets and variables → Actions** and add three secrets:
-       - `HEROKU_API_KEY` — from your Heroku **Account Settings**
-       - `HEROKU_APP_NAME` — the name you gave the app in step 3
-       - `HEROKU_EMAIL` — your Heroku login email
-- [ ] 5. Push `main` to GitHub — the CD workflow deploys automatically and runs migrations.
-- [ ] 6. Run `heroku run python manage.py createsuperuser --app your-app-name`.
-- [ ] 7. Your app is live at `https://your-app-name.herokuapp.com`. Admin panel at `/admin/`.
 
 ---
 
@@ -143,65 +128,12 @@ python manage.py createsuperuser
 
 All environment variables (`SECRET_KEY`, `HMAC_SECRET`, `DATABASE_URL`, etc.) are generated or wired up automatically by the Blueprint.
 
-## Deployment on Heroku / Railway
-
-### Prerequisites
-
-- Heroku CLI or Railway CLI
-- Redis add-on (Heroku Redis or Railway Redis)
-- PostgreSQL add-on (Heroku Postgres or Railway PostgreSQL)
-
-### Environment Variables
-
-Set these in your hosting platform's dashboard:
-
-| Variable | Description |
-|---|---|
-| `SECRET_KEY` | A long, random Django secret key |
-| `DEBUG` | Set to `False` in production |
-| `HMAC_SECRET` | Secret for HMAC token signing |
-| `DATABASE_URL` | PostgreSQL connection URL (set automatically by add-on) |
-| `CELERY_BROKER_URL` | Redis connection URL (set automatically by add-on) |
-| `CELERY_RESULT_BACKEND` | Same as `CELERY_BROKER_URL` |
-| `ALLOWED_HOSTS` | Comma-separated list of your domain(s) |
-
-### Heroku
-
-```bash
-heroku create your-app-name
-heroku addons:create heroku-postgresql  # check https://elements.heroku.com/addons/heroku-postgresql for current plans
-heroku addons:create heroku-redis:mini
-heroku config:set SECRET_KEY="your-secret-key"
-heroku config:set DEBUG=False
-heroku config:set HMAC_SECRET="your-hmac-secret"
-heroku config:set ALLOWED_HOSTS="your-app-name.herokuapp.com"
-git push heroku main
-heroku run python manage.py migrate
-heroku run python manage.py createsuperuser
-```
-
 ## Environment Variables Reference
 
 See [`.env.example`](.env.example) for all available environment variables.
 
 ## CI/CD
 
-This repository includes two GitHub Actions workflows:
+This repository includes a GitHub Actions CI workflow:
 
 - **CI** (`.github/workflows/ci.yml`): Runs on every push and pull request to `main`. Installs dependencies, runs migrations, runs tests, and checks `collectstatic`.
-- **CD** (`.github/workflows/cd.yml`): Runs on every push to `main` and deploys to Heroku automatically.
-
-### Setting up the CD workflow (Heroku)
-
-1. Create a Heroku app and add the PostgreSQL and Redis add-ons (see [Deployment on Heroku / Railway](#deployment-on-heroku--railway) above).
-2. Add the following secrets in your GitHub repository settings (**Settings → Secrets and variables → Actions**):
-
-   | Secret | Description |
-   |---|---|
-   | `HEROKU_API_KEY` | Your Heroku API key (find it in Account Settings) |
-   | `HEROKU_APP_NAME` | The name of your Heroku app |
-   | `HEROKU_EMAIL` | The email address of your Heroku account |
-
-3. Push to `main` — the CD workflow will build and deploy all process types (web, worker, beat) to Heroku automatically using `heroku.yml`.
-
-> **Tip:** If you don't want to use the CD workflow, simply omit the secrets above — the workflow will fail gracefully because the secrets will be empty.
