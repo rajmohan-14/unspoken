@@ -1,0 +1,112 @@
+services:
+  - type: redis
+    name: unspoken-redis
+    plan: free
+    ipAllowList: []
+
+  - type: web
+    name: unspoken-web
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 2
+    plan: free
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: HMAC_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: unspoken-db
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: unspoken-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: unspoken-redis
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        fromService:
+          type: web
+          name: unspoken-web
+          property: host
+      - key: PYTHON_VERSION
+        value: "3.13.0"
+
+  - type: worker
+    name: unspoken-worker
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A core worker -l info
+    plan: free
+    envVars:
+      - key: SECRET_KEY
+        fromService:
+          type: web
+          name: unspoken-web
+          envVarKey: SECRET_KEY
+      - key: HMAC_SECRET
+        fromService:
+          type: web
+          name: unspoken-web
+          envVarKey: HMAC_SECRET
+      - key: DATABASE_URL
+        fromDatabase:
+          name: unspoken-db
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: unspoken-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: unspoken-redis
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: "3.13.0"
+
+  - type: worker
+    name: unspoken-beat
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A core beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    plan: free
+    envVars:
+      - key: SECRET_KEY
+        fromService:
+          type: web
+          name: unspoken-web
+          envVarKey: SECRET_KEY
+      - key: HMAC_SECRET
+        fromService:
+          type: web
+          name: unspoken-web
+          envVarKey: HMAC_SECRET
+      - key: DATABASE_URL
+        fromDatabase:
+          name: unspoken-db
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: unspoken-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: unspoken-redis
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: "3.13.0"
+
+databases:
+  - name: unspoken-db
+    plan: free

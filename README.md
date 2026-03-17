@@ -88,6 +88,26 @@ docker compose exec web python manage.py createsuperuser
 
 The app will be available at http://localhost:8000.
 
+## Deployment on Render
+
+The easiest way to deploy Unspoken is with [Render](https://render.com) using the included `render.yaml` Blueprint. It provisions a web service, Celery worker, Celery beat scheduler, PostgreSQL database, and Redis instance automatically.
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+### Steps
+
+1. Fork or push this repository to GitHub.
+2. In the [Render dashboard](https://dashboard.render.com/), click **New → Blueprint** and connect your repository.
+3. Render reads `render.yaml` and provisions all services automatically.
+4. After the first deploy completes, open a Render Shell for the `unspoken-web` service and run:
+
+```bash
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+All environment variables (`SECRET_KEY`, `HMAC_SECRET`, `DATABASE_URL`, etc.) are generated or wired up automatically by the Blueprint.
+
 ## Deployment on Heroku / Railway
 
 ### Prerequisites
@@ -128,3 +148,25 @@ heroku run python manage.py createsuperuser
 ## Environment Variables Reference
 
 See [`.env.example`](.env.example) for all available environment variables.
+
+## CI/CD
+
+This repository includes two GitHub Actions workflows:
+
+- **CI** (`.github/workflows/ci.yml`): Runs on every push and pull request to `main`. Installs dependencies, runs migrations, runs tests, and checks `collectstatic`.
+- **CD** (`.github/workflows/cd.yml`): Runs on every push to `main` and deploys to Heroku automatically.
+
+### Setting up the CD workflow (Heroku)
+
+1. Create a Heroku app and add the PostgreSQL and Redis add-ons (see [Deployment on Heroku / Railway](#deployment-on-heroku--railway) above).
+2. Add the following secrets in your GitHub repository settings (**Settings → Secrets and variables → Actions**):
+
+   | Secret | Description |
+   |---|---|
+   | `HEROKU_API_KEY` | Your Heroku API key (find it in Account Settings) |
+   | `HEROKU_APP_NAME` | The name of your Heroku app |
+   | `HEROKU_EMAIL` | The email address of your Heroku account |
+
+3. Push to `main` — the CD workflow will build the Docker image and deploy it to Heroku automatically.
+
+> **Tip:** If you don't want to use the CD workflow, simply omit the secrets above — the workflow will fail gracefully because the secrets will be empty.
